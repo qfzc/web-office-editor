@@ -32,7 +32,7 @@ npm run dev
 面向 React、Vue、原生 HTML 及 SSR 项目的完整落地说明，见[第三方项目接入指南](./THIRD_PARTY_INTEGRATION_GUIDE.md)。
 
 ```ts
-import { createDocEditor } from '@doc-platform/frontend-sdk';
+import { createDocEditor } from '@qfzc/frontend-sdk';
 
 const editor = await createDocEditor(document.querySelector('#editor')!, {
   type: 'docx',

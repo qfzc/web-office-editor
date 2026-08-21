@@ -1,5 +1,5 @@
 {
-  "name": "@doc-platform/frontend-sdk",
+  "name": "@qfzc/frontend-sdk",
   "version": "0.1.0",
   "description": "Framework-agnostic browser SDK for editing DOCX, XLSX, and PPTX files.",
   "type": "module",
@@ -36,6 +36,17 @@
     "sdk"
   ],
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qfzc/web-office-editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/qfzc/web-office-editor/issues"
+  },
+  "homepage": "https://github.com/qfzc/web-office-editor#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20.19"
   },

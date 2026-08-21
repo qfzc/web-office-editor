@@ -24,11 +24,10 @@ SDK 会在传入容器中创建 open Shadow DOM，隔离编辑器样式。该容
 
 ## 2. 获取和安装
 
-包名为 `@doc-platform/frontend-sdk`。交付方应发布到双方约定的 npm 私有源，接入方按以下方式安装：
+包名为 `@qfzc/frontend-sdk`。发布到 npm 公共仓库后，接入方可直接安装：
 
 ```bash
-npm config set @doc-platform:registry https://npm.example.com/
-npm install @doc-platform/frontend-sdk
+npm install @qfzc/frontend-sdk
 ```
 
 尚未接入私有源时，可由交付方提供 `.tgz` 安装包。交付方在 SDK 仓库执行：
@@ -42,7 +41,7 @@ npm pack
 接入方安装交付的包文件：
 
 ```bash
-npm install /path/to/doc-platform-frontend-sdk-0.1.0.tgz
+npm install /path/to/qfzc-frontend-sdk-0.1.0.tgz
 ```
 
 不要把 SDK 源码目录直接复制进业务项目，也不要直接引用其 `src/` 目录；应通过版本化 npm 包使用 `dist/` 产物，才能保留动态分包、类型声明和依赖锁定。
@@ -63,7 +62,7 @@ import {
   DocSDKError,
   type DocType,
   type IDocAdapter,
-} from '@doc-platform/frontend-sdk';
+} from '@qfzc/frontend-sdk';
 
 const container = document.querySelector<HTMLElement>('#document-editor');
 if (!container) throw new Error('Editor container is missing.');
@@ -200,7 +199,7 @@ const editor = await createDocEditor(container, {
 
 ```tsx
 import { useEffect, useRef } from 'react';
-import { createDocEditor, type IDocAdapter } from '@doc-platform/frontend-sdk';
+import { createDocEditor, type IDocAdapter } from '@qfzc/frontend-sdk';
 
 export function DocumentEditor({ file }: { file: File }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -240,7 +239,7 @@ export function DocumentEditor({ file }: { file: File }) {
 ```vue
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { createDocEditor, type IDocAdapter } from '@doc-platform/frontend-sdk';
+import { createDocEditor, type IDocAdapter } from '@qfzc/frontend-sdk';
 
 const container = ref<HTMLElement>();
 let editor: IDocAdapter | null = null;
@@ -271,7 +270,7 @@ onBeforeUnmount(() => editor?.destroy());
 不要在服务端模块顶层导入 SDK。将编辑器组件声明为客户端组件，或在客户端生命周期中再动态导入：
 
 ```ts
-const { createDocEditor } = await import('@doc-platform/frontend-sdk');
+const { createDocEditor } = await import('@qfzc/frontend-sdk');
 ```
 
 这样可避免服务端没有 `HTMLElement`、DOM 和 Shadow DOM 时的渲染错误。
