@@ -1,0 +1,295 @@
+:root {
+  --app-bg: #f8fafc;
+  --surface: #ffffff;
+  --text: #172033;
+  --text-muted: #68758a;
+  --text-faint: #94a3b8;
+  --border: #dce3eb;
+  --hover: #f1f5f9;
+  --primary: #16794e;
+  --primary-hover: #11613e;
+  --primary-soft: #edf8f2;
+  --shadow-surface: 0 4px 12px rgba(15, 23, 42, 0.035);
+  color: var(--text);
+  background: var(--app-bg);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+button,
+select,
+input { font: inherit; }
+
+button:focus-visible,
+select:focus-visible,
+.file-control:focus-within {
+  outline: 2px solid rgba(22, 121, 78, 0.24);
+  outline-offset: 2px;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-rows: 72px minmax(0, 1fr);
+  width: 100vw;
+  height: 100vh;
+  min-height: 520px;
+  overflow: hidden;
+}
+
+.workspace-header {
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.workspace-identity,
+.workspace-actions,
+.document-meta,
+.document-status,
+.file-control,
+button {
+  display: flex;
+  align-items: center;
+}
+
+.workspace-identity {
+  min-width: 0;
+  gap: 12px;
+}
+
+.product-mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  border: 1px solid #cce7d8;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.product-mark svg { width: 21px; height: 21px; }
+
+.document-identity {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.product-name {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 15px;
+}
+
+h1 {
+  max-width: min(48vw, 680px);
+  margin: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-meta { min-width: 0; gap: 8px; }
+
+.format-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 16px;
+}
+
+.document-status {
+  min-width: 0;
+  gap: 5px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.status-indicator {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+#document-status[data-tone="loading"] .status-indicator { background: #d28a15; }
+#document-status[data-tone="ready"] .status-indicator { background: var(--primary); }
+#document-status[data-tone="changed"] .status-indicator { background: #d28a15; }
+#document-status[data-tone="error"] .status-indicator { background: #cf3f45; }
+
+#status {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-actions {
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.format-control {
+  display: grid;
+  gap: 2px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+}
+
+select,
+button,
+.file-control {
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+select {
+  min-width: 104px;
+  padding: 0 28px 0 10px;
+  cursor: pointer;
+}
+
+button {
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+select:hover,
+button:hover:not(:disabled),
+.file-control:hover {
+  border-color: #b9c5d0;
+  background: var(--hover);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  color: var(--text-faint);
+  opacity: 0.72;
+}
+
+.file-control {
+  position: relative;
+  gap: 7px;
+  padding: 0 12px;
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.file-control:hover {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
+}
+
+.file-control > span:first-child { display: none; }
+
+.file-control input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.button-icon,
+.icon-button svg {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  place-items: center;
+}
+
+.button-icon svg,
+.icon-button svg { width: 16px; height: 16px; }
+
+.icon-button {
+  width: 36px;
+  padding: 0;
+}
+
+.editor-frame {
+  min-width: 0;
+  min-height: 0;
+  margin: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-surface);
+}
+
+#editor {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 640px;
+  }
+
+  .workspace-header {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .workspace-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+
+  .format-control { min-width: 0; }
+  .format-control select { width: 100%; }
+  .button-secondary { width: 36px; padding: 0; }
+  .button-secondary > span:last-child { display: none; }
+  h1 { max-width: calc(100vw - 82px); }
+  .editor-frame { margin: 8px; border-radius: 6px; }
+}

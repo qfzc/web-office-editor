@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>文档中台前端 SDK</title>
+    <script type="module" src="/demo/main.ts"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="workspace-header">
+        <div class="workspace-identity">
+          <span class="product-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 3.75h8.25L18 7.5v12.75H6z" />
+              <path d="M14.25 3.75V7.5H18" />
+              <path d="M8.75 11h6.5M8.75 14h6.5" />
+            </svg>
+          </span>
+          <div class="document-identity">
+            <span class="product-name">文档工作台</span>
+            <h1 id="document-title">未打开文档</h1>
+            <div class="document-meta">
+              <span id="format-badge" class="format-badge">工作台</span>
+              <span id="document-status" class="document-status" role="status" aria-live="polite">
+                <span class="status-indicator" aria-hidden="true"></span>
+                <span id="status">未加载文档</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="workspace-actions">
+          <label class="format-control">
+            <span>文件类型</span>
+            <select id="doc-type" aria-label="文档格式">
+              <option value="docx">DOCX</option>
+              <option value="xlsx">XLSX</option>
+              <option value="pptx">PPTX Beta</option>
+            </select>
+          </label>
+          <label class="file-control">
+            <span>打开文件</span>
+            <input id="file" type="file" accept=".docx" />
+            <span class="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3.75 6.75A1.75 1.75 0 0 1 5.5 5h4l1.5 1.75h7.5a1.75 1.75 0 0 1 1.75 1.75v7.75A1.75 1.75 0 0 1 18.5 18H5.5a1.75 1.75 0 0 1-1.75-1.75z" />
+              </svg>
+            </span>
+            <span>打开</span>
+          </label>
+          <button id="export" class="button-secondary" type="button" disabled aria-label="导出" title="导出">
+            <span class="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3.5v10.25M8.5 10.25 12 13.75l3.5-3.5M5 16.5v2A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-2" />
+              </svg>
+            </span>
+            <span>导出</span>
+          </button>
+          <button id="destroy" class="icon-button" type="button" disabled aria-label="关闭文档" title="关闭文档">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m7.5 7.5 9 9m0-9-9 9" />
+            </svg>
+          </button>
+        </div>
+      </header>
+      <section class="editor-frame" aria-labelledby="document-title">
+        <section id="editor" aria-label="文档编辑器"></section>
+      </section>
+    </main>
+  </body>
+</html>
