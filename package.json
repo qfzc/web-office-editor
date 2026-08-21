@@ -15,6 +15,7 @@
   "files": [
     "dist",
     "README.md",
+    "THIRD_PARTY_INTEGRATION_GUIDE.md",
     "LICENSE"
   ],
   "sideEffects": false,

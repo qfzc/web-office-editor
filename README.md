@@ -29,6 +29,8 @@ npm run dev
 
 ## 基本接入
 
+面向 React、Vue、原生 HTML 及 SSR 项目的完整落地说明，见[第三方项目接入指南](./THIRD_PARTY_INTEGRATION_GUIDE.md)。
+
 ```ts
 import { createDocEditor } from '@doc-platform/frontend-sdk';
 
