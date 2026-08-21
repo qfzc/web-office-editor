@@ -25,11 +25,137 @@ const PPTX_STYLE_OVERRIDES = `
 .pptxv-ribbon-tabs { display: none !important; }
 `;
 const INLINE_TEXT_SOURCE_ATTRIBUTE = 'data-doc-sdk-pptx-inline-source';
+const INLINE_TEXT_STYLE_PROPERTIES = [
+  'color',
+  'font-family',
+  'font-size',
+  'font-weight',
+  'font-style',
+  'font-variant',
+  'font-stretch',
+  'font-kerning',
+  'font-feature-settings',
+  'font-variation-settings',
+  'line-height',
+  'letter-spacing',
+  'word-spacing',
+  'text-align',
+  'text-align-last',
+  'text-indent',
+  'text-transform',
+  'text-decoration',
+  'text-decoration-color',
+  'text-decoration-line',
+  'text-decoration-style',
+  'text-decoration-thickness',
+  'text-underline-offset',
+  'text-shadow',
+  'white-space',
+  'overflow-wrap',
+  'word-break',
+  'hyphens',
+  'direction',
+  'writing-mode',
+  'text-orientation',
+  'vertical-align',
+] as const;
 
 interface PendingLoad {
   promise: Promise<void>;
   resolve(): void;
   reject(error: Error): void;
+}
+
+function getInlineEditorText(element: Element): string {
+  let text = '';
+  const visit = (parent: Node) => {
+    for (const child of Array.from(parent.childNodes)) {
+      if (child.nodeType === 3) {
+        text += child.nodeValue ?? '';
+        continue;
+      }
+      if (!(child instanceof HTMLElement)) continue;
+      if (child.tagName === 'BR') {
+        text += '\n';
+        continue;
+      }
+      if ((child.tagName === 'DIV' || child.tagName === 'P') && text.length > 0 && !text.endsWith('\n')) {
+        text += '\n';
+      }
+      visit(child);
+    }
+  };
+
+  visit(element);
+  return text;
+}
+
+function copyTextAppearance(source: HTMLElement, inlineEditor: HTMLElement): void {
+  const sourceStyle = source.ownerDocument.defaultView?.getComputedStyle(source);
+  if (!sourceStyle) return;
+
+  for (const property of INLINE_TEXT_STYLE_PROPERTIES) {
+    const value = sourceStyle.getPropertyValue(property);
+    if (value) inlineEditor.style.setProperty(property, value);
+  }
+}
+
+function restoreInlineEditorCaret(inlineEditor: HTMLElement): void {
+  const document = inlineEditor.ownerDocument;
+  if (document.activeElement !== inlineEditor) return;
+
+  const selection = document.defaultView?.getSelection();
+  if (!selection) return;
+
+  const range = document.createRange();
+  range.selectNodeContents(inlineEditor);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function preserveInlineEditorSegments(
+  sourceText: HTMLElement,
+  inlineEditor: HTMLElement,
+): void {
+  const segments = Array.from(inlineEditor.querySelectorAll<HTMLElement>('[data-seg-idx]'));
+  if (segments.length === 0) return;
+
+  const sourceRuns = Array.from(sourceText.querySelectorAll<HTMLElement>('.pptxv-para > *')).filter(
+    (run) =>
+      !run.classList.contains('pptxv-bullet') &&
+      !run.classList.contains('pptxv-bullet-image') &&
+      run.textContent !== '',
+  );
+  let segmentIndex = 0;
+
+  for (const run of sourceRuns) {
+    while (segments[segmentIndex]?.textContent === '\n') segmentIndex += 1;
+    if (segments[segmentIndex]?.textContent !== run.textContent) continue;
+    run.dataset.segIdx = String(segmentIndex);
+    segmentIndex += 1;
+  }
+}
+
+function hydrateInlineEditorFromSource(source: HTMLElement, inlineEditor: HTMLElement): void {
+  const sourceText = source.matches('.pptxv-text')
+    ? source
+    : source.querySelector<HTMLElement>('.pptxv-text');
+  if (!sourceText) return;
+
+  copyTextAppearance(sourceText, inlineEditor);
+  if (getInlineEditorText(sourceText) !== getInlineEditorText(inlineEditor)) return;
+
+  const clone = sourceText.cloneNode(true) as HTMLElement;
+  // The editor should retain link styling without navigating away while typing.
+  for (const link of clone.querySelectorAll('a')) {
+    link.removeAttribute('href');
+    link.removeAttribute('target');
+    link.removeAttribute('rel');
+  }
+  preserveInlineEditorSegments(clone, inlineEditor);
+  inlineEditor.replaceChildren(clone);
+  restoreInlineEditorCaret(inlineEditor);
 }
 
 export class PptxAdapter extends BaseAdapter {
@@ -196,45 +322,99 @@ export class PptxAdapter extends BaseAdapter {
 
     const mountPoint = this.mount.mountPoint;
     let restoreInlineText: (() => void) | null = null;
+    let activeInlineEditor: HTMLElement | null = null;
 
-    const onDoubleClick = (event: MouseEvent) => {
+    const getInlineEditor = () =>
+      mountPoint.querySelector<HTMLElement>('.pptxv-inline-text-editor[data-inline-editor]');
+    const isTextSource = (element: HTMLElement) =>
+      element.classList.contains('pptxv-text') ||
+      element.classList.contains('pptxv-wordart') ||
+      element.querySelector('.pptxv-text, .pptxv-wordart') !== null;
+    const findSourceText = (
+      inlineEditor: HTMLElement,
+      preferredSource: HTMLElement | null,
+    ): HTMLElement | null => {
+      if (preferredSource && mountPoint.contains(preferredSource) && isTextSource(preferredSource)) {
+        return preferredSource;
+      }
+
+      const selectionBox = inlineEditor
+        .closest('.pptxv-editor-overlay')
+        ?.querySelector<HTMLElement>('.pptxv-sel-box:not([hidden])');
+      const editorRect = (selectionBox ?? inlineEditor).getBoundingClientRect();
+      if (editorRect.width === 0 || editorRect.height === 0) return null;
+
+      let closestSource: HTMLElement | null = null;
+      let closestDistance = Number.POSITIVE_INFINITY;
+      for (const source of mountPoint.querySelectorAll<HTMLElement>('[data-element-id]')) {
+        if (!isTextSource(source)) continue;
+        const sourceRect = source.getBoundingClientRect();
+        if (sourceRect.width === 0 || sourceRect.height === 0) continue;
+
+        const distance =
+          Math.abs(sourceRect.left - editorRect.left) +
+          Math.abs(sourceRect.top - editorRect.top) +
+          Math.abs(sourceRect.width - editorRect.width) +
+          Math.abs(sourceRect.height - editorRect.height);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestSource = source;
+        }
+      }
+
+      return closestDistance <= 8 ? closestSource : null;
+    };
+
+    const hideSourceText = (inlineEditor: HTMLElement, preferredSource: HTMLElement | null) => {
+      if (activeInlineEditor === inlineEditor) return;
+      restoreInlineText?.();
+
+      const source = findSourceText(inlineEditor, preferredSource);
+      if (!source) return;
+
+      hydrateInlineEditorFromSource(source, inlineEditor);
+      source.setAttribute(INLINE_TEXT_SOURCE_ATTRIBUTE, '');
+      activeInlineEditor = inlineEditor;
+      let restored = false;
+      const restore = () => {
+        if (restored) return;
+        restored = true;
+        source.removeAttribute(INLINE_TEXT_SOURCE_ATTRIBUTE);
+        activeInlineEditor = null;
+        if (restoreInlineText === restore) restoreInlineText = null;
+      };
+
+      restoreInlineText = restore;
+      inlineEditor.addEventListener('blur', restore, { once: true });
+    };
+
+    const hideSourceTextWhenInlineEditorOpens = (event: Event) => {
       if (!(event.target instanceof Element)) return;
 
-      const source = event.target.closest<HTMLElement>('[data-element-id]');
-      if (!source || !mountPoint.contains(source)) return;
+      const source = event.target.closest<HTMLElement>('[data-element-id]') ?? null;
 
       queueMicrotask(() => {
-        const inlineEditor = mountPoint.querySelector<HTMLElement>(
-          '.pptxv-inline-text-editor[data-inline-editor]',
-        );
-        if (!inlineEditor || !mountPoint.contains(inlineEditor) || !mountPoint.contains(source)) {
-          return;
-        }
-
-        restoreInlineText?.();
-        source.setAttribute(INLINE_TEXT_SOURCE_ATTRIBUTE, '');
-
-        let restored = false;
-        const observer = new MutationObserver(() => {
-          if (!mountPoint.contains(inlineEditor)) restore();
-        });
-        const restore = () => {
-          if (restored) return;
-          restored = true;
-          observer.disconnect();
-          source.removeAttribute(INLINE_TEXT_SOURCE_ATTRIBUTE);
-          if (restoreInlineText === restore) restoreInlineText = null;
-        };
-
-        restoreInlineText = restore;
-        inlineEditor.addEventListener('blur', restore, { once: true });
-        observer.observe(mountPoint, { childList: true, subtree: true });
+        const inlineEditor = getInlineEditor();
+        if (inlineEditor) hideSourceText(inlineEditor, source);
       });
     };
 
-    mountPoint.addEventListener('dblclick', onDoubleClick, true);
+    const observer = new MutationObserver(() => {
+      const inlineEditor = getInlineEditor();
+      if (inlineEditor) hideSourceText(inlineEditor, null);
+      else restoreInlineText?.();
+    });
+
+    // The viewer opens text editing on the second pointerdown, before the
+    // browser dispatches dblclick. Keep dblclick as a fallback for viewers
+    // that defer editor creation until that event.
+    mountPoint.addEventListener('pointerdown', hideSourceTextWhenInlineEditorOpens, true);
+    mountPoint.addEventListener('dblclick', hideSourceTextWhenInlineEditorOpens, true);
+    observer.observe(mountPoint, { childList: true, subtree: true });
     this.disposeInlineTextLayerWorkaround = () => {
-      mountPoint.removeEventListener('dblclick', onDoubleClick, true);
+      mountPoint.removeEventListener('pointerdown', hideSourceTextWhenInlineEditorOpens, true);
+      mountPoint.removeEventListener('dblclick', hideSourceTextWhenInlineEditorOpens, true);
+      observer.disconnect();
       restoreInlineText?.();
       restoreInlineText = null;
     };
