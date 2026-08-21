@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    groups:
+      docx:
+        patterns:
+          - "@docx-editor.dev/*"
+      xlsx:
+        patterns:
+          - "@fortune-sheet/*"
+      pptx:
+        patterns:
+          - "pptx-vanilla-viewer"
