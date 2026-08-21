@@ -2,6 +2,8 @@
 
 统一封装浏览器端 DOCX、XLSX、PPTX 的加载、编辑、导出和销毁能力。宿主可以是 React、Vue 或原生 HTML，不需要提供 React 依赖；三种编辑器按文档类型动态加载，并挂载在 Shadow DOM 中。
 
+源码仓库：[qfzc/web-office-editor](https://github.com/qfzc/web-office-editor)。外部接入请参阅[第三方项目接入指南](./THIRD_PARTY_INTEGRATION_GUIDE.md)。
+
 ## 当前实现
 
 | 格式 | 引擎 | 加载/编辑/导出 | 协同 |

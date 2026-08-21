@@ -24,13 +24,22 @@ SDK 会在传入容器中创建 open Shadow DOM，隔离编辑器样式。该容
 
 ## 2. 获取和安装
 
-包名为 `@qfzc/frontend-sdk`。发布到 npm 公共仓库后，接入方可直接安装：
+### 公开地址
+
+- 源码、变更记录和问题反馈：[qfzc/web-office-editor](https://github.com/qfzc/web-office-editor)
+- npm 包名：`@qfzc/frontend-sdk`
+
+GitHub 仓库已推送至 `master` 分支，可供接入方查阅源码和接入文档。GitHub 源码仓库不替代 npm 包：SDK 的 `dist/` 构建产物不随源码仓库交付，业务项目不要使用 `npm install github:qfzc/web-office-editor` 直接安装。
+
+### 从 npm 安装
+
+待 `@qfzc/frontend-sdk` 首次发布到 npm 公共仓库后，接入方可直接安装：
 
 ```bash
 npm install @qfzc/frontend-sdk
 ```
 
-尚未接入私有源时，可由交付方提供 `.tgz` 安装包。交付方在 SDK 仓库执行：
+在 npm 首次发布前，可由交付方提供 `.tgz` 安装包。交付方在 SDK 仓库执行：
 
 ```bash
 npm ci
