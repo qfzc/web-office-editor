@@ -132,6 +132,17 @@ DOCX 原生的 `File / Format / Insert / Help` 菜单栏默认关闭，避免与
 
 PPTX 原生的标题栏、快捷操作栏和功能标签导航默认关闭；当前功能区的编辑命令、幻灯片缩略图和属性侧栏仍保持可用。
 
+PPTX 的右侧属性栏可由宿主控制初始状态，并在打开后随时切换，无需重新加载文件：
+
+```ts
+const editor = await createDocEditor(container, {
+  type: 'pptx',
+  pptx: { showInspector: false },
+});
+
+editor.setInspectorVisible?.(true);
+```
+
 ## 验证命令
 
 ```bash

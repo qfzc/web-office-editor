@@ -111,6 +111,49 @@ describe('PptxAdapter', () => {
     expect(viewerOptions).toMatchObject({ showToolbar: false });
   });
 
+  it('lets the host toggle the right-hand inspector after the viewer has loaded', async () => {
+    mocks.createPptxViewer.mockImplementation(
+      (mountPoint: HTMLElement, options: ViewerOptionsMock) => {
+        const root = document.createElement('div');
+        root.className = 'pptxv';
+        const inspector = document.createElement('aside');
+        inspector.className = 'pptxv-inspector';
+        root.append(inspector);
+        mountPoint.append(root);
+        queueMicrotask(() =>
+          options.onLoad?.({ slideCount: 1, canvasSize: { width: 1280, height: 720 } }),
+        );
+        return {
+          loadFile: vi.fn(),
+          save: vi.fn(),
+          startCollaboration: vi.fn(),
+          stopCollaboration: vi.fn(),
+          destroy: vi.fn(),
+        };
+      },
+    );
+
+    const container = document.createElement('div');
+    const adapter = new PptxAdapter(container, {
+      type: 'pptx',
+      pptx: { showInspector: false },
+    });
+
+    await adapter.loadFile(new Blob(['pptx']));
+
+    const mountPoint = container.shadowRoot?.querySelector<HTMLElement>('[data-doc-sdk-mount]');
+    expect(adapter.isInspectorVisible()).toBe(false);
+    expect(mountPoint?.hasAttribute('data-doc-sdk-pptx-inspector-hidden')).toBe(true);
+
+    adapter.setInspectorVisible(true);
+
+    expect(adapter.isInspectorVisible()).toBe(true);
+    expect(mountPoint?.hasAttribute('data-doc-sdk-pptx-inspector-hidden')).toBe(false);
+    expect(container.shadowRoot?.textContent).toContain(
+      '[data-doc-sdk-pptx-inspector-hidden] .pptxv-inspector',
+    );
+  });
+
   it('rejects loadFile when the viewer reports a parsing error', async () => {
     mocks.createPptxViewer.mockImplementation(
       (_mountPoint: HTMLElement, options: ViewerOptionsMock) => {

@@ -4,6 +4,7 @@ import './styles.css';
 const typeSelect = document.querySelector<HTMLSelectElement>('#doc-type')!;
 const fileInput = document.querySelector<HTMLInputElement>('#file')!;
 const exportButton = document.querySelector<HTMLButtonElement>('#export')!;
+const pptxInspectorToggle = document.querySelector<HTMLButtonElement>('#pptx-inspector-toggle')!;
 const destroyButton = document.querySelector<HTMLButtonElement>('#destroy')!;
 const status = document.querySelector<HTMLElement>('#status')!;
 const statusGroup = document.querySelector<HTMLElement>('#document-status')!;
@@ -13,6 +14,7 @@ const container = document.querySelector<HTMLElement>('#editor')!;
 
 let editor: IDocAdapter | null = null;
 let currentFileName = '';
+let inspectorVisible = false;
 
 type StatusTone = 'idle' | 'loading' | 'ready' | 'changed' | 'error';
 
@@ -24,6 +26,15 @@ function setStatus(message: string, tone: StatusTone = 'idle'): void {
 function setActive(active: boolean): void {
   exportButton.disabled = !active;
   destroyButton.disabled = !active;
+}
+
+function updateInspectorToggle(available: boolean): void {
+  pptxInspectorToggle.hidden = !available;
+  pptxInspectorToggle.disabled = !available;
+  pptxInspectorToggle.setAttribute('aria-pressed', String(inspectorVisible));
+  const label = inspectorVisible ? '隐藏右侧属性面板' : '显示右侧属性面板';
+  pptxInspectorToggle.setAttribute('aria-label', label);
+  pptxInspectorToggle.title = label;
 }
 
 function extensionFor(type: DocType): string {
@@ -44,16 +55,26 @@ typeSelect.addEventListener('change', () => {
   fileInput.value = '';
 });
 
+pptxInspectorToggle.addEventListener('click', () => {
+  if (editor?.type !== 'pptx' || !editor.setInspectorVisible) return;
+
+  inspectorVisible = !inspectorVisible;
+  editor.setInspectorVisible(inspectorVisible);
+  updateInspectorToggle(true);
+});
+
 fileInput.addEventListener('change', async () => {
   const file = fileInput.files?.[0];
   if (!file) return;
 
   editor?.destroy();
   setActive(false);
+  updateInspectorToggle(false);
   setStatus(`正在打开 ${file.name}`, 'loading');
   currentFileName = file.name;
   const type = typeSelect.value as DocType;
   setDocumentIdentity(file.name, type);
+  inspectorVisible = false;
 
   try {
     editor = await createDocEditor(container, {
@@ -61,15 +82,19 @@ fileInput.addEventListener('change', async () => {
       fileName: file.name,
       // Keep the vendor command surface available for document-specific edits.
       chrome: { toolbar: 'native' },
+      // Start PPTX with the right-hand property panel collapsed.
+      pptx: { showInspector: inspectorVisible },
       onChange: () => setStatus('有未导出更改', 'changed'),
       onError: (error) => setStatus(error.message, 'error'),
     });
     await editor.loadFile(file);
     setStatus('已打开', 'ready');
     setActive(true);
+    updateInspectorToggle(type === 'pptx' && Boolean(editor.setInspectorVisible));
   } catch (error) {
     editor?.destroy();
     editor = null;
+    updateInspectorToggle(false);
     setStatus(error instanceof Error ? error.message : '文件打开失败', 'error');
   }
 });
@@ -101,5 +126,6 @@ destroyButton.addEventListener('click', () => {
   setActive(false);
   currentFileName = '';
   setDocumentIdentity();
+  updateInspectorToggle(false);
   setStatus('未加载文档');
 });

@@ -200,6 +200,8 @@ const editor = await createDocEditor(container, {
 
 当 `chrome.toolbar` 为 `unified` 时，它优先于各格式的 `showToolbar` 配置。
 
+PPTX 的 `showInspector` 控制右侧属性栏的初始显示状态。加载后可通过 `editor.setInspectorVisible?.(visible)` 动态显示或隐藏该面板；该能力仅在 PPTX 编辑器上可用。
+
 ## 6. React、Vue 与 SSR
 
 ### React

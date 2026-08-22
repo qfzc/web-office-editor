@@ -91,6 +91,7 @@ export interface XlsxAdapterOptions {
 export interface PptxAdapterOptions {
   showToolbar?: boolean;
   showThumbnails?: boolean;
+  /** Initial visibility of the right-hand property inspector. */
   showInspector?: boolean;
   locale?: string;
   autosave?: boolean;
@@ -116,5 +117,9 @@ export interface IDocAdapter {
   loadFile(file: Blob | ArrayBuffer): Promise<void>;
   exportFile(): Promise<Blob>;
   enableCollab?(config: CollabConfig): Promise<void>;
+  /** PPTX only: show or hide the right-hand property inspector. */
+  setInspectorVisible?(visible: boolean): void;
+  /** PPTX only: report whether the right-hand property inspector is visible. */
+  isInspectorVisible?(): boolean;
   destroy(): void;
 }

@@ -249,6 +249,8 @@ button:disabled {
   padding: 0;
 }
 
+#pptx-inspector-toggle[hidden] { display: none; }
+
 .editor-frame {
   min-width: 0;
   min-height: 0;

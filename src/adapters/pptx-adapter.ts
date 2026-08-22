@@ -23,6 +23,8 @@ const PPTX_STYLE_OVERRIDES = `
 .pptxv-titlebar { display: none !important; }
 .pptxv-ribbon-primary { display: none !important; }
 .pptxv-ribbon-tabs { display: none !important; }
+/* Keep the inspector mounted so the host can toggle it after initialization. */
+[data-doc-sdk-pptx-inspector-hidden] .pptxv-inspector { display: none !important; }
 `;
 const INLINE_TEXT_SOURCE_ATTRIBUTE = 'data-doc-sdk-pptx-inline-source';
 const INLINE_TEXT_STYLE_PROPERTIES = [
@@ -164,9 +166,12 @@ export class PptxAdapter extends BaseAdapter {
   private pendingLoad: PendingLoad | null = null;
   private loadQueue: Promise<void> = Promise.resolve();
   private disposeInlineTextLayerWorkaround: (() => void) | null = null;
+  private inspectorVisible: boolean;
 
   constructor(container: HTMLElement, options: DocSDKOptions) {
     super('pptx', container, options, `${pptxStyles}\n${PPTX_STYLE_OVERRIDES}`);
+    this.inspectorVisible = options.pptx?.showInspector ?? true;
+    this.applyInspectorVisibility();
   }
 
   loadFile(file: Blob | ArrayBuffer): Promise<void> {
@@ -258,6 +263,16 @@ export class PptxAdapter extends BaseAdapter {
     }
   }
 
+  setInspectorVisible(visible: boolean): void {
+    this.assertAlive();
+    this.inspectorVisible = visible;
+    this.applyInspectorVisibility();
+  }
+
+  isInspectorVisible(): boolean {
+    return this.inspectorVisible;
+  }
+
   destroy(): void {
     if (this.state === 'destroyed') return;
     this.pendingLoad?.reject(
@@ -289,7 +304,9 @@ export class PptxAdapter extends BaseAdapter {
         this.options.pptx?.showToolbar,
       ),
       showThumbnails: this.options.pptx?.showThumbnails,
-      showInspector: this.options.pptx?.showInspector,
+      // The adapter owns runtime visibility. Keeping the panel mounted lets a
+      // host restore it without recreating the viewer or losing its state.
+      showInspector: true,
       autosave: this.options.pptx?.autosave,
       autosaveFilePath: this.options.fileName,
       onChange: () => this.markChanged(),
@@ -436,5 +453,12 @@ export class PptxAdapter extends BaseAdapter {
     this.mount.mountPoint
       .querySelector<HTMLButtonElement>('.pptxv-backstage .pptxv-bs-back')
       ?.click();
+  }
+
+  private applyInspectorVisibility(): void {
+    this.mount.mountPoint.toggleAttribute(
+      'data-doc-sdk-pptx-inspector-hidden',
+      !this.inspectorVisible,
+    );
   }
 }
