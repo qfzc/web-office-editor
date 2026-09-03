@@ -73,7 +73,7 @@
     "typescript": "5.9.2",
     "typescript-eslint": "8.40.0",
     "vite": "7.3.6",
-    "vitest": "3.2.7",
+    "vitest": "4.1.11",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "overrides": {
